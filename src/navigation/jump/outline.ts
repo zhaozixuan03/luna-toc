@@ -807,10 +807,12 @@ function updateAllPromptItems(): void {
  */
 function updatePromptItemState(entry: PromptItemEntry, index: number): void {
   const outline = promptOutlines.get(index)?.entries || [];
+  const visibleOutline = suppressPromotedSmartLabel(outline, entry.item);
   const isCurrent = index === currentPromptIndex;
   const isMarkExpanded =
     expandedPromptOutlines.has(index) && isPromptMarked(index);
-  const hasVisibleOutline = (isCurrent || isMarkExpanded) && outline.length > 0;
+  const hasVisibleOutline =
+    (isCurrent || isMarkExpanded) && visibleOutline.length > 0;
   const isExpanded = expandedPromptOutlines.has(index) && hasVisibleOutline;
 
   entry.item.classList.toggle('navigator-item-has-outline', hasVisibleOutline);
@@ -821,7 +823,22 @@ function updatePromptItemState(entry: PromptItemEntry, index: number): void {
     ? getOutlineIndicatorIcon()
     : '';
 
-  renderOutlineList(entry.outlineList, outline, isExpanded, index);
+  renderOutlineList(entry.outlineList, visibleOutline, isExpanded, index);
+}
+
+/** Removes the outline row already promoted to the parent Smart Label. */
+function suppressPromotedSmartLabel(
+  outline: OutlineEntry[],
+  item: HTMLElement
+): OutlineEntry[] {
+  const promotedHeading = item.dataset.promotedHeading?.replace(/\s+/g, ' ').trim();
+  if (!promotedHeading) return outline;
+
+  const duplicateIndex = outline.findIndex(
+    (entry) => entry.text.replace(/\s+/g, ' ').trim() === promotedHeading
+  );
+  if (duplicateIndex === -1) return outline;
+  return outline.filter((_, index) => index !== duplicateIndex);
 }
 
 /**

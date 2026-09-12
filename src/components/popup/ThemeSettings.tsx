@@ -1,14 +1,21 @@
-/** Renders follow-ChatGPT and current theme controls for the popup. */
+/** Renders appearance, palette, and custom-color controls for the popup. */
 import { Moon, Sun } from 'lucide-react';
 import type {
   ResolvedTheme,
   ThemeSettings as ThemeSettingsValue,
 } from '@/features/theme/themeSettings';
+import {
+  THEME_PALETTE_OPTIONS,
+  type CustomThemeColors,
+  type ThemePaletteId,
+} from '@/features/theme/themePalettes';
 
 interface ThemeSettingsProps {
   settings: ThemeSettingsValue;
   resolvedTheme: ResolvedTheme;
   onChange: (settings: ThemeSettingsValue) => void;
+  onClearSmartLabels: () => void;
+  cacheCleared: boolean;
 }
 
 /** Displays follow and resolved theme controls in one compact row. */
@@ -16,6 +23,8 @@ export function ThemeSettings({
   settings,
   resolvedTheme,
   onChange,
+  onClearSmartLabels,
+  cacheCleared,
 }: ThemeSettingsProps): React.JSX.Element {
   const toggleFollow = (): void => {
     onChange({ ...settings, followChatGPT: !settings.followChatGPT });
@@ -24,6 +33,18 @@ export function ThemeSettings({
     onChange({
       ...settings,
       manualTheme: settings.manualTheme === 'dark' ? 'light' : 'dark',
+    });
+  };
+  const selectPalette = (palette: ThemePaletteId): void => {
+    onChange({ ...settings, palette });
+  };
+  const updateCustomColor = (
+    key: keyof CustomThemeColors,
+    value: string
+  ): void => {
+    onChange({
+      ...settings,
+      customColors: { ...settings.customColors, [key]: value },
     });
   };
 
@@ -93,6 +114,58 @@ export function ThemeSettings({
               className="size-5 drop-shadow-[0_0_4px_currentColor]"
             />
           )}
+        </button>
+      </div>
+      <div className="mt-2 grid grid-cols-5 gap-1" aria-label="Color palette">
+        {THEME_PALETTE_OPTIONS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            aria-pressed={settings.palette === option.id}
+            title={option.label}
+            className={`flex min-w-0 cursor-pointer flex-col items-center gap-1 rounded-md border px-1 py-1.5 text-[9px] text-(--p-toggle-text) transition hover:border-(--p-accent) ${
+              settings.palette === option.id
+                ? 'border-(--p-accent) bg-(--p-bg-note)'
+                : 'border-(--p-toggle-border) bg-transparent'
+            }`}
+            onClick={() => selectPalette(option.id)}
+          >
+            <span
+              className="size-3.5 rounded-full border border-white/25"
+              style={{ background: option.preview }}
+            />
+            <span className="w-full truncate">{option.label}</span>
+          </button>
+        ))}
+      </div>
+      {settings.palette === 'custom' && (
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {(['background', 'text', 'accent'] as const).map((key) => (
+            <label
+              key={key}
+              className="flex items-center gap-1 text-[9px] capitalize text-(--p-toggle-text)"
+            >
+              <input
+                type="color"
+                className="size-5 cursor-pointer appearance-none rounded border border-(--p-toggle-border) bg-transparent p-0"
+                value={settings.customColors[key]}
+                onChange={(event) => updateCustomColor(key, event.target.value)}
+              />
+              {key}
+            </label>
+          ))}
+        </div>
+      )}
+      <div className="mt-2 flex items-center justify-between border-t border-(--p-toggle-border) pt-2">
+        <span className="text-[9px] text-(--p-toggle-text)">
+          Smart Labels stay on this device.
+        </span>
+        <button
+          type="button"
+          className="cursor-pointer rounded border border-(--p-toggle-border) bg-transparent px-2 py-1 text-[9px] text-(--p-toggle-text) hover:border-(--p-accent) hover:text-(--p-accent)"
+          onClick={onClearSmartLabels}
+        >
+          {cacheCleared ? 'Cleared' : 'Clear cache'}
         </button>
       </div>
     </section>

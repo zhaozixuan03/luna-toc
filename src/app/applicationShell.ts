@@ -18,11 +18,15 @@ import {
   type ResolvedTheme,
   type ThemeSettings,
 } from '@/features/theme/themeSettings';
+import { applyThemePalette } from '@/features/theme/themePalettes';
 import { APP_CONFIG } from '@/config/config';
 import { initializeNavigationSettings } from '@/navigation/navigationSettings';
+import { initializeDisplayModeSettings } from '@/navigation/displayModeSettings';
+import { initializeSmartLabelStore } from '@/navigation/smartLabelStore';
 import { navigatorController } from '@/navigation/navigatorController';
 import { sidebarController } from '@/features/sidebar/sidebarController';
 import { initFloatingPanel } from '@/features/sidebar/FloatingPanel';
+import { initializeSidebarSettings } from '@/features/sidebar/sidebarSettings';
 
 /**
  * Resolves when document.body exists during document_start execution.
@@ -116,6 +120,10 @@ async function createSidebar(): Promise<HTMLElement> {
           placeholder="Search prompts..."
           autocomplete="off"
         />
+        <div class="navigator-display-mode" role="group" aria-label="Prompt label display mode">
+          <button type="button" data-display-mode="raw">Raw</button>
+          <button type="button" data-display-mode="smart">Smart</button>
+        </div>
         <div id="myprompts-toolbar-container"></div>
       </div>
       <div class="navigator-jump-controls">
@@ -183,6 +191,11 @@ function initTheme(): void {
   };
   const applySettings = (nextSettings: ThemeSettings): void => {
     settings = nextSettings;
+    applyThemePalette(
+      document.documentElement,
+      nextSettings.palette,
+      nextSettings.customColors
+    );
     applyTheme(
       nextSettings.followChatGPT
         ? getChatGPTTheme()
@@ -222,7 +235,11 @@ function applyStackingConfig(): void {
  */
 export async function initializeApplication(): Promise<void> {
   applyStackingConfig();
-  await initializeNavigationSettings();
+  await Promise.all([
+    initializeNavigationSettings(),
+    initializeDisplayModeSettings(),
+    initializeSmartLabelStore(),
+  ]);
   initTheme();
   navigatorController.init({
     onPromptCountChanged: sidebarController.setPromptCount,
@@ -236,6 +253,7 @@ export async function initializeApplication(): Promise<void> {
   });
   const sidebar = await createSidebar();
   sidebarController.init();
+  await initializeSidebarSettings();
   initSidebarResize(sidebar);
   initFloatingPanel();
 

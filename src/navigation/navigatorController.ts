@@ -49,6 +49,30 @@ import {
   previewTooltip,
 } from '@/features/tooltip';
 import { APP_CONFIG } from '@/config/config';
+import {
+  getDisplayMode,
+  subscribeDisplayMode,
+} from '@/navigation/displayModeSettings';
+import {
+  extractFirstMarkdownHeading,
+  resolvePromptDisplayLabel,
+  type PromptDisplayLabelResult,
+} from '@/navigation/promptLabels';
+import { createPromptLabelSourceSignature } from '@/navigation/promptLabelContext';
+import { compressPromptLabel } from '@/navigation/promptLabelCompression';
+import {
+  PromptLabelLayoutScheduler,
+  type PromptLabelLayoutResult,
+} from '@/navigation/promptLabelLayout';
+import {
+  createPromptLabelTraceId,
+  recordPromptLabelTrace,
+} from '@/navigation/promptLabelDiagnostics';
+import {
+  SMART_LABEL_ALGORITHM_VERSION,
+  getSmartLabelCacheLookup,
+  storeSmartLabel,
+} from '@/navigation/smartLabelStore';
 
 interface NavigatorControllerOptions {
   onPromptCountChanged?: (count: number) => void;
@@ -81,6 +105,16 @@ interface ResetRouteOptions {
   nextMessages?: NavigatorMessage[];
 }
 
+interface SmartLabelSource {
+  answerHeading: string | null;
+  hasResponse: boolean;
+  previousResponses: NavigationTurn['responses'];
+  currentResponses: NavigationTurn['responses'];
+  previousPrompt: NavigationTurn['prompt'] | null;
+  sourceSignature: string;
+  sourceComplete: boolean;
+}
+
 export const navigatorController = (() => {
   const EMPTY_HINT_TEXT = 'Waiting for prompts...';
   const NATIVE_PROMPT_BUTTON_SELECTORS = [
@@ -108,6 +142,7 @@ export const navigatorController = (() => {
   });
 
   let conversationMessages: NavigatorMessage[] = [];
+  let smartLabelSources = new Map<string, SmartLabelSource>();
   const accumulatedConversationMessages = new Map<string, Map<string, ChatMessage>>();
   let searchQuery = '';
   let currentConversationKey: string | null = null;
@@ -115,6 +150,7 @@ export const navigatorController = (() => {
   let pendingNewChatMessage: ChatMessage | null = null;
   let activeNavigatorIndex: number | null = null;
   let navigatorItems: HTMLElement[] = [];
+  let promptLabelLayoutScheduler: PromptLabelLayoutScheduler | null = null;
   let activePromptObserver: IntersectionObserver | null = null;
   let activePromptMutationObserver: MutationObserver | null = null;
   let activePromptMutationTimer: ReturnType<typeof setTimeout> | null = null;
@@ -154,6 +190,9 @@ export const navigatorController = (() => {
   function markLoadingComplete(): void {
     if (!isLoadingPrompts) return;
     isLoadingPrompts = false;
+    smartLabelSources.forEach((source) => {
+      source.sourceComplete = true;
+    });
     if (loadingSettleTimer !== null) {
       clearTimeout(loadingSettleTimer);
       loadingSettleTimer = null;
@@ -216,6 +255,7 @@ export const navigatorController = (() => {
     initMarkedPrompts();
     listenForConversationData();
     listenForRouteChanges();
+    subscribeDisplayMode(() => render());
     isInitialized = true;
   }
 
@@ -336,6 +376,8 @@ export const navigatorController = (() => {
 
     if (!list) return;
 
+    promptLabelLayoutScheduler?.dispose();
+    promptLabelLayoutScheduler = new PromptLabelLayoutScheduler(list);
     list.innerHTML = '';
     navigatorItems = [];
     resetPromptItems();
@@ -344,12 +386,16 @@ export const navigatorController = (() => {
 
     const normalizedQuery = normalizeText(searchQuery).toLowerCase();
     const visibleMessages = conversationMessages
-      .map((message, index) => ({ message, index }))
-      .filter(({ message }) => {
+      .map((message, index) => ({
+        message,
+        index,
+        labelResult: getPromptDisplayLabel(message),
+      }))
+      .filter(({ message, labelResult }) => {
         if (!normalizedQuery) return true;
-        return normalizeText(message.text)
-          .toLowerCase()
-          .includes(normalizedQuery);
+        return [message.text, labelResult.label, labelResult.semanticLabel].some((text) =>
+          normalizeText(text).toLowerCase().includes(normalizedQuery)
+        );
       });
 
     if (hint) {
@@ -360,8 +406,8 @@ export const navigatorController = (() => {
       hint.textContent = hasQuery ? 'No matching prompts.' : EMPTY_HINT_TEXT;
     }
 
-    visibleMessages.forEach(({ message, index }) => {
-      const item = createNavigatorItem(message, index);
+    visibleMessages.forEach(({ message, index, labelResult }) => {
+      const item = createNavigatorItem(message, index, labelResult);
       navigatorItems[index] = item;
       list.appendChild(item);
     });
@@ -456,7 +502,8 @@ export const navigatorController = (() => {
    */
   function createNavigatorItem(
     message: NavigatorMessage,
-    index: number
+    index: number,
+    labelResult: PromptDisplayLabelResult
   ): HTMLElement {
     const item = document.createElement('div');
     const itemMain = document.createElement('div');
@@ -470,7 +517,13 @@ export const navigatorController = (() => {
     );
     itemMain.className = 'navigator-item-main';
     itemText.className = 'navigator-item-text';
-    itemText.textContent = `${index + 1}. ${message.text.replace(/\s+/g, ' ')}`;
+    const displayLabel = labelResult.label;
+    itemText.textContent = `${index + 1}. ${displayLabel}`;
+    const hasDerivedLabel = displayLabel !== normalizeText(message.text);
+    itemText.dataset.smartLabel = String(hasDerivedLabel);
+    if (labelResult.selectedCandidate?.kind === 'response-heading') {
+      item.dataset.promotedHeading = labelResult.selectedCandidate.text;
+    }
 
     const markButton = createPromptMarkButton({
       item,
@@ -495,8 +548,17 @@ export const navigatorController = (() => {
 
     item.addEventListener('click', (event) => {
       handleNavigatorItemClick(message, index);
-      if (isElementTextTruncated(itemText) && item.matches(':hover')) {
-        previewTooltip.show(message.text, event, itemMain);
+      if (
+        (hasDerivedLabel || isElementTextTruncated(itemText)) &&
+        item.matches(':hover')
+      ) {
+        showPromptPreview(
+          message.text,
+          labelResult.semanticLabel,
+          hasDerivedLabel,
+          event,
+          itemMain
+        );
       }
     });
     item.addEventListener('contextmenu', (event) => {
@@ -504,15 +566,141 @@ export const navigatorController = (() => {
       onSavePrompt(message);
     });
     item.addEventListener('mouseenter', (event) => {
-      if (isElementTextTruncated(itemText)) {
-        previewTooltip.show(message.text, event, itemMain);
+      if (hasDerivedLabel || isElementTextTruncated(itemText)) {
+        showPromptPreview(
+          message.text,
+          labelResult.semanticLabel,
+          hasDerivedLabel,
+          event,
+          itemMain
+        );
       }
     });
     item.addEventListener('mouseleave', () => {
       previewTooltip.hide();
     });
 
+    const layoutCandidates = compressPromptLabel(labelResult.semanticLabel).candidates;
+    if (hasDerivedLabel && layoutCandidates.length > 1) {
+      promptLabelLayoutScheduler?.register(
+        itemText,
+        `${index + 1}. `,
+        layoutCandidates,
+        (layoutResult) => {
+          itemText.textContent = `${index + 1}. ${layoutResult.label}`;
+          recordSmartLabelDiagnostic(message, labelResult, layoutResult);
+        }
+      );
+    } else {
+      recordSmartLabelDiagnostic(message, labelResult, {
+        label: displayLabel,
+        fit: 'unmeasured',
+      });
+    }
+
     return item;
+  }
+
+  function showPromptPreview(
+    rawText: string,
+    displayLabel: string,
+    hasDerivedLabel: boolean,
+    event: MouseEvent,
+    anchorElement: HTMLElement
+  ): void {
+    previewTooltip.show(
+      hasDerivedLabel
+        ? { title: displayLabel, content: `Original prompt:\n${rawText}` }
+        : rawText,
+      event,
+      anchorElement
+    );
+  }
+
+  /** Resolves display-only metadata without mutating the source message. */
+  function getPromptDisplayLabel(
+    message: NavigatorMessage
+  ): PromptDisplayLabelResult {
+    const startedAt = performance.now();
+    const mode = getDisplayMode();
+    const conversationKey = getCurrentConversationKey();
+    const source = smartLabelSources.get(message.id);
+    const cacheLookup =
+      mode === 'smart'
+        ? getSmartLabelCacheLookup(
+            conversationKey,
+            message.id,
+            Date.now(),
+            source?.sourceSignature
+          )
+        : { label: null, status: 'not_checked' as const };
+    const resolved = resolvePromptDisplayLabel({
+      rawText: message.text,
+      mode,
+      cachedLabel: cacheLookup.label,
+      cacheStatus: cacheLookup.status,
+      answerHeading: source?.answerHeading,
+      hasResponse: source?.hasResponse ?? false,
+      previousResponses: source?.previousResponses,
+      currentResponses: source?.currentResponses,
+      previousPrompt: source?.previousPrompt,
+      sourceComplete: source?.sourceComplete,
+    });
+    const result = {
+      ...resolved,
+      cacheStatus: cacheLookup.status,
+      elapsedMs: performance.now() - startedAt,
+    };
+    if (result.shouldStore) {
+      storeSmartLabel(conversationKey, message.id, result.semanticLabel, Date.now(), {
+        sourceSignature: source?.sourceSignature,
+        decisionType: result.decisionType,
+      });
+    }
+    return result;
+  }
+
+  function recordSmartLabelDiagnostic(
+    message: NavigatorMessage,
+    result: PromptDisplayLabelResult,
+    layout: PromptLabelLayoutResult
+  ): void {
+    const source = smartLabelSources.get(message.id);
+    const stageStatuses = {
+      ...result.stageStatuses,
+      layout: layout.fit === 'fit'
+        ? 'passed' as const
+        : layout.fit === 'unfit'
+          ? 'rejected' as const
+          : 'deferred' as const,
+    };
+    const reasons = layout.fit === 'unfit'
+      ? [...new Set([...result.allReasons, 'LAYOUT_UNFIT' as const])]
+      : result.allReasons;
+    recordPromptLabelTrace({
+      traceId: createPromptLabelTraceId(),
+      conversationKey: getCurrentConversationKey(),
+      messageId: message.id,
+      sourceSignature: source?.sourceSignature ?? '',
+      algorithmVersion: SMART_LABEL_ALGORITHM_VERSION,
+      completionNeed: result.completionNeed,
+      compressionNeed: result.compressionNeed,
+      route: result.route,
+      primaryReason: layout.fit === 'unfit' ? 'LAYOUT_UNFIT' : result.primaryReason,
+      allReasons: reasons,
+      stageStatuses,
+      evidenceCount: result.evidenceCount,
+      candidateCount: result.candidateCount,
+      validCandidateCount: result.validCandidateCount,
+      selectedCandidateId: result.selectedCandidate?.id,
+      sourceKinds: result.sourceKinds,
+      sourceComplete: source?.sourceComplete ?? false,
+      contextTruncated: result.contextTruncated,
+      cacheStatus: result.cacheStatus,
+      layoutFit: layout.fit,
+      elapsedMs: result.elapsedMs,
+      createdAt: Date.now(),
+    });
   }
 
   /**
@@ -830,6 +1018,7 @@ export const navigatorController = (() => {
       conversationMessages
     );
     const turns = getActivePlatform().contentCapture.createNavigationTurns(data);
+    smartLabelSources = createSmartLabelSources(turns, !isLoadingPrompts);
     syncRenderedFingerprintContext(conversationKey, revision, turns);
 
     void buildFingerprintIndex(turns, 'derived')
@@ -917,6 +1106,7 @@ export const navigatorController = (() => {
   }: ResetRouteOptions = {}): void {
     if (!preserveMessages) {
       conversationMessages = nextMessages;
+      smartLabelSources = new Map();
     }
 
     initMarkedPrompts();
@@ -1186,5 +1376,33 @@ function createResponsePromptIndexMap(
     turns.flatMap((turn) =>
       turn.responses.map((response) => [response.id, turn.promptIndex] as const)
     )
+  );
+}
+
+/** Maps prompt IDs to local Assistant-heading context for Smart Labels. */
+function createSmartLabelSources(
+  turns: NavigationTurn[],
+  sourceComplete: boolean
+): Map<string, SmartLabelSource> {
+  return new Map(
+    turns.map((turn, index) => [
+      turn.prompt.id,
+      {
+        answerHeading: extractFirstMarkdownHeading(turn.responses),
+        hasResponse: turn.responses.some(
+          (response) => response.text.trim().length > 0
+        ),
+        previousResponses: turns[index - 1]?.responses ?? [],
+        currentResponses: turn.responses,
+        previousPrompt: turns[index - 1]?.prompt ?? null,
+        sourceSignature: createPromptLabelSourceSignature(
+          turns[index - 1]?.responses ?? [],
+          turn.responses,
+          turn.prompt.text,
+          turns[index - 1]?.prompt
+        ),
+        sourceComplete: sourceComplete || index < turns.length - 1,
+      },
+    ])
   );
 }

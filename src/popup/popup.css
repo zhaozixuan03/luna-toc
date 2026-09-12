@@ -58,6 +58,98 @@ body[data-theme='light'] {
   .coffee-img-light { display: inline; }
 }
 
+html[data-palette='chatgpt-warm'],
+body[data-palette='chatgpt-warm'] {
+  --p-bg-body: #211b18;
+  --p-bg-main: #2b231f;
+  --p-bg-note: #392c27;
+  --p-bg-kbd: #392c27;
+  --p-border-kbd: #65483d;
+  --p-text-base: #eaded5;
+  --p-text-h2: #e79a7d;
+  --p-text-strong: #e79a7d;
+  --p-text-kbd: #f2b19a;
+  --p-accent: #d47a5d;
+  --p-toggle-bg: #392c27;
+  --p-toggle-bg-active: #b35c44;
+  --p-toggle-border: #65483d;
+  --p-toggle-text: #c9aa99;
+}
+
+html[data-theme='light'][data-palette='chatgpt-warm'],
+body[data-theme='light'][data-palette='chatgpt-warm'] {
+  --p-bg-body: #f2e4dc;
+  --p-bg-main: #f7f1eb;
+  --p-bg-note: #f0ddd3;
+  --p-bg-kbd: #f0ddd3;
+  --p-border-kbd: #d8ad9b;
+  --p-text-base: #4c3028;
+  --p-text-h2: #8f402d;
+  --p-text-strong: #8f402d;
+  --p-text-kbd: #8f402d;
+  --p-accent: #a64f37;
+  --p-toggle-bg: #f0ddd3;
+  --p-toggle-bg-active: #a64f37;
+  --p-toggle-border: #d8ad9b;
+  --p-toggle-text: #85675c;
+}
+
+html[data-palette='sage'],
+body[data-palette='sage'] {
+  --p-text-h2: #9ac2aa;
+  --p-text-strong: #9ac2aa;
+  --p-accent: #77a88c;
+  --p-toggle-bg-active: #4f8068;
+}
+
+html[data-theme='light'][data-palette='sage'],
+body[data-theme='light'][data-palette='sage'] {
+  --p-bg-body: #e2ede6;
+  --p-bg-main: #ecf3ee;
+  --p-bg-note: #d6e6db;
+  --p-text-h2: #426b55;
+  --p-text-strong: #426b55;
+  --p-accent: #426b55;
+  --p-toggle-bg-active: #426b55;
+}
+
+html[data-palette='violet'],
+body[data-palette='violet'] {
+  --p-text-h2: #c2b5f6;
+  --p-text-strong: #c2b5f6;
+  --p-accent: #a997ef;
+  --p-toggle-bg-active: #7461bd;
+}
+
+html[data-theme='light'][data-palette='violet'],
+body[data-theme='light'][data-palette='violet'] {
+  --p-bg-body: #e9e3f8;
+  --p-bg-main: #f4f1fc;
+  --p-bg-note: #e4ddf5;
+  --p-text-h2: #6753a6;
+  --p-text-strong: #6753a6;
+  --p-accent: #6753a6;
+  --p-toggle-bg-active: #6753a6;
+}
+
+html[data-palette='custom'],
+body[data-palette='custom'] {
+  --p-bg-body: color-mix(in srgb, var(--p-custom-background) 88%, black);
+  --p-bg-main: var(--p-custom-background);
+  --p-bg-note: color-mix(in srgb, var(--p-custom-accent) 14%, var(--p-custom-background));
+  --p-bg-kbd: color-mix(in srgb, var(--p-custom-accent) 14%, var(--p-custom-background));
+  --p-border-kbd: color-mix(in srgb, var(--p-custom-accent) 48%, var(--p-custom-background));
+  --p-text-base: var(--p-custom-text);
+  --p-text-h2: var(--p-custom-accent);
+  --p-text-strong: var(--p-custom-accent);
+  --p-text-kbd: var(--p-custom-accent);
+  --p-accent: var(--p-custom-accent);
+  --p-toggle-bg: color-mix(in srgb, var(--p-custom-accent) 12%, var(--p-custom-background));
+  --p-toggle-bg-active: var(--p-custom-accent);
+  --p-toggle-border: color-mix(in srgb, var(--p-custom-accent) 42%, var(--p-custom-background));
+  --p-toggle-text: color-mix(in srgb, var(--p-custom-text) 72%, var(--p-custom-background));
+}
+
 * {
   box-sizing: border-box;
 }

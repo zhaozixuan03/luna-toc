@@ -2,6 +2,7 @@
 /** Tests Outline extraction descriptors and cache ownership. */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  createPromptItem,
   getPromptOutline,
   handlePromptNavigation,
   resetOutline,
@@ -73,6 +74,27 @@ describe('prompt outlines', () => {
     renderConversation('prompt-a', []);
 
     expect(handlePromptNavigation(0, 0)).toEqual({ shouldBuild: true });
+  });
+
+  it('suppresses an outline heading promoted to the parent Smart Label', () => {
+    setPromptMessages([createMessage('prompt-a')]);
+    renderConversation('prompt-a', [
+      ['h2', '电磁波里谁在振动？'],
+      ['h3', '电场与磁场的关系'],
+    ]);
+    const item = document.createElement('div');
+    item.dataset.promotedHeading = '电磁波里谁在振动？';
+    const controls = createPromptItem({ item, index: 0, messageId: 'prompt-a' });
+    item.appendChild(controls.outlineList);
+    document.body.appendChild(item);
+
+    handlePromptNavigation(0, null);
+    scheduleBuild(0, 1);
+    handlePromptNavigation(0, 0);
+
+    expect(
+      Array.from(controls.outlineList.children).map((child) => child.textContent)
+    ).toEqual(['电场与磁场的关系']);
   });
 });
 

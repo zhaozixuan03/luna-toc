@@ -544,3 +544,82 @@ Out of scope for this PR:
 - `Manifest.json` now lists `https://copilot.microsoft.com/*` in both MAIN
   and ISOLATED match arrays so the placeholder can be smoke-tested; expect
   `Error('Copilot platform not yet implemented')` if Copilot code paths run.
+
+---
+
+## ADR 12: Local Smart Labels and Independent Color Palettes
+
+**Date:** 2026-09-10
+**Updated:** 2026-09-12
+
+### Context
+
+Short prompts such as "continue", "okay", or "why" are poor navigation labels,
+but sending conversation content to an LLM would add privacy, permission, and
+operational costs. Users also need stable labels across visits and color choices
+that better match ChatGPT than the original Luna Blue palette.
+
+### Decision
+
+Keep Raw prompt text as the default TOC mode and add an explicit Smart mode.
+Smart mode uses a conservative deterministic reply classifier. It distinguishes
+continuation, acknowledgement, clarification, uncertainty, option-shaped
+choices, informative prompts, and unknown text. Exact short triggers and a
+small set of verified colloquial forms remain high-confidence seeds. Decorative
+emoji may be ignored only after a contextual signal is recognized. Attachments,
+code, URLs, specific questions, concrete actions, and meaningful remaining
+content protect the original Prompt. A bare letter or number is only an option
+candidate; it is not a choice without one unambiguous preceding question group.
+
+Build bounded candidates from the current final answer's Markdown headings and
+explicitly introduced topics, plus the preceding final answer's explicit
+question and complete option groups. Bind evidence according to reply type:
+continuations prefer current topics, choices require the selected option,
+uncertainty retains an undecided attitude, and clarifications may reuse one
+explicit preceding question. Reject missing, incomplete, generic, overlong,
+format-damaged, or ambiguous evidence. Generated labels are display metadata
+only; original text and message IDs remain authoritative for navigation,
+previews, search, and saved prompts.
+
+Persist generated labels in `chrome.storage.local` by conversation/message ID.
+Each record includes algorithm version 4, a compact source revision signature,
+and decision type so regenerated answers, branch changes, prompt changes, and
+algorithm upgrades invalidate stale derived labels. Do not persist source
+Prompt or Assistant text. Incomplete sources remain raw and are not cached.
+Keep the provisional bounds at 50 conversations, 500 labels per conversation,
+and 180 days since last access, and expose a clear-cache action.
+
+Separate resolved appearance (`light`/`dark` and Follow ChatGPT) from the color
+palette. Keep Luna Blue and add ChatGPT Warm, Sage, Violet, and Custom. Custom
+accepts validated six-digit hexadecimal background, text, and accent colors.
+
+Completion and compression are independent decisions. Contextual completion may
+use the current and preceding Prompt/Assistant turns, but every accepted relation
+must retain message-bound evidence. Ordinary task sentences are eligible evidence;
+Markdown formatting only affects ranking. Long informative Prompts and completed
+labels use the same fidelity-checked compression candidates. Browser layout selects
+only among those candidates and keeps the complete semantic label when none fits.
+
+Developer diagnosis uses a bounded, deduplicated in-memory trace with explicit
+stage states and reason codes. It is not persisted, uploaded, or exposed in the
+user-facing sidebar. The local replay script and reviewed fixtures are development
+and regression data, not an unseen test set.
+
+### Consequences
+
+- Smart Label generation and storage require no network request or new permission.
+- A generated label remains stable only while its complete source input and algorithm version remain unchanged.
+- Smart results are intentionally conservative and may fall back to raw text.
+- Compound prompts with a concrete topic or action remain raw even when they contain continuation or acknowledgement language.
+- Missing, incomplete, weak, or ambiguous evidence retains the raw Prompt.
+- A unique preceding option group may resolve bare selections and uncertainty without confusing prose such as "Project B" with option key B.
+- Search matches both the visible Smart Label and the original Prompt.
+- Smart Labels use two display lines, and hover previews show the full label plus original Prompt.
+- A promoted answer heading is omitted from the child outline to avoid duplicate hierarchy.
+- Cache schema version 4 invalidates earlier labels, requires a verifiable source signature, and invalidates individual records when any consumed local context changes.
+- Preset and Custom palettes do not alter navigation behavior.
+- Palette and cache controls are available from a visible sidebar gear as well as the extension popup.
+
+### Follow-up
+
+- Reassess the provisional 50-conversation, 500-label, and 180-day cache limits using real storage usage and privacy feedback before treating them as durable product defaults.
