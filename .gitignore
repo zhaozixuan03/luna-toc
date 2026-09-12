@@ -7,3 +7,8 @@ icons/v*/
 node_modules/
 dist/
 .dev-stamp.json
+
+# Local development artifacts and private evaluation data
+artifacts/
+data/private/
+evaluation/private/

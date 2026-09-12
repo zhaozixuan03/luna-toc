@@ -19,6 +19,8 @@ LunaTOC helps you navigate long conversations by automatically turning your prom
 - Click any prompt to instantly jump to its location
 - Mark important prompts for quick visual reference
 - Search and filter prompts
+- Switch between Raw prompt text and locally generated Smart Labels for context-dependent prompts; Smart binds reply intent to specific nearby answer evidence
+- Choose Luna Blue, ChatGPT Warm, Sage, Violet, or a custom color palette
 - Save and reuse custom prompt templates
 - Import and export saved prompts as editable Markdown files
 - Autocomplete saved prompts inside ChatGPT's input box
@@ -65,14 +67,16 @@ LunaTOC helps you navigate long conversations by automatically turning your prom
 2. The LunaTOC sidebar will appear on the right side.
 3. Click a TOC item to jump to that prompt.
 4. Use the search box to filter prompts.
-5. Switch to My Prompts to manage saved prompt templates.
-6. Right-click a prompt item to add it to My Prompts.
-7. Use the My Prompts import and export buttons to transfer saved prompts as Markdown.
-8. Type `#` or `//` in the ChatGPT input box to autocomplete a saved prompt.
-9. Hover over a truncated prompt to preview the full content.
-10. Drag the left edge of the sidebar to resize it.
-11. Use the sidebar pin button to keep the sidebar open or enable auto-hide.
-12. Hover the floating button to reveal an auto-hidden sidebar, or drag it to reposition it for the current tab.
+5. Choose Raw or Smart above the TOC. Smart can use a specific answer heading or explicitly introduced topic, and can resolve a choice or uncertainty from one unambiguous preceding question group. Without reliable local evidence it keeps the raw prompt. Prompt content and navigation IDs remain untouched.
+6. Click the sidebar gear or open the extension popup to choose a preset palette, edit Custom colors, or clear the local Smart Label cache.
+7. Switch to My Prompts to manage saved prompt templates.
+8. Right-click a prompt item to add it to My Prompts.
+9. Use the My Prompts import and export buttons to transfer saved prompts as Markdown.
+10. Type `#` or `//` in the ChatGPT input box to autocomplete a saved prompt.
+11. Hover over a truncated prompt to preview the full original content.
+12. Drag the left edge of the sidebar to resize it.
+13. Use the sidebar pin button to keep the sidebar open or enable auto-hide.
+14. Hover the floating button to reveal an auto-hidden sidebar, or drag it to reposition it for the current tab.
 
 ---
 
@@ -140,9 +144,24 @@ npm version major
 
 ## Privacy
 
-LunaTOC runs entirely in your browser.
+LunaTOC runs entirely in your browser and does not send conversation data to
+an external service. Smart Labels use conservative deterministic rules and
+never call an LLM or network API. They keep prompts with a concrete topic,
+question, attachment, code, or action unchanged, and do not guess when nearby
+answer evidence is missing, incomplete, or ambiguous.
 
-No conversation data is collected, stored, transmitted, or shared with any external service.
+To keep labels consistent across visits, the extension stores only generated
+Smart Labels, source revision signatures, decision types, and their conversation/message identifiers in
+`chrome.storage.local`. It does not add source prompts or assistant responses to
+that cache. The popup provides a clear-cache action. The initial cache bounds
+are 50 conversations, 500 labels per conversation, and 180 days since last
+access; these provisional limits will be reassessed after usage evidence is
+available.
+
+Smart Labels can display on two lines. Hovering one shows both its complete
+label and the original Prompt. When an answer heading is promoted to the parent
+label, the duplicate first outline row is hidden while other answer headings
+remain available.
 
 ---
 

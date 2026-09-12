@@ -12,6 +12,8 @@ import {
   type ResolvedTheme,
   type ThemeSettings as ThemeSettingsValue,
 } from '@/features/theme/themeSettings';
+import { applyThemePalette } from '@/features/theme/themePalettes';
+import { clearSmartLabelCache } from '@/navigation/smartLabelStore';
 import { ThemeSettings } from './ThemeSettings';
 import coffeeImage from './black-button.png';
 import coffeeImageLight from './yellow-button.png';
@@ -23,12 +25,19 @@ const COFFEE_URL = 'https://buymeacoffee.com/jinleo';
 const INITIAL_SETTINGS: ThemeSettingsValue = {
   followChatGPT: true,
   manualTheme: 'dark',
+  palette: 'luna-blue',
+  customColors: {
+    background: '#282522',
+    text: '#f2ebe3',
+    accent: '#c86b4a',
+  },
 };
 
 /** Displays theme controls and the existing usage guidance. */
 export function PopupApp(): React.JSX.Element {
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
   const [chatGPTTheme, setChatGPTTheme] = useState<ResolvedTheme>('dark');
+  const [cacheCleared, setCacheCleared] = useState(false);
 
   useEffect(() => {
     void readThemeSettings().then(setSettings);
@@ -49,11 +58,23 @@ export function PopupApp(): React.JSX.Element {
   useEffect(() => {
     document.documentElement.dataset.theme = resolvedTheme;
     document.body.dataset.theme = resolvedTheme;
-  }, [resolvedTheme]);
+    applyThemePalette(
+      document.documentElement,
+      settings.palette,
+      settings.customColors
+    );
+    applyThemePalette(document.body, settings.palette, settings.customColors);
+  }, [resolvedTheme, settings.palette, settings.customColors]);
 
   const updateSettings = (nextSettings: ThemeSettingsValue): void => {
     setSettings(nextSettings);
     void writeThemeSettings(nextSettings);
+  };
+  const handleClearSmartLabels = (): void => {
+    void clearSmartLabelCache().then(() => {
+      setCacheCleared(true);
+      window.setTimeout(() => setCacheCleared(false), 1_500);
+    });
   };
 
   return (
@@ -62,6 +83,8 @@ export function PopupApp(): React.JSX.Element {
         settings={settings}
         resolvedTheme={resolvedTheme}
         onChange={updateSettings}
+        onClearSmartLabels={handleClearSmartLabels}
+        cacheCleared={cacheCleared}
       />
 
       <section className="m-0" aria-labelledby="tips-heading">

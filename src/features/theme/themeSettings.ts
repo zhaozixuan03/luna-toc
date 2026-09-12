@@ -1,10 +1,20 @@
 /** Defines and persists the LunaTOC theme preference. */
 
+import {
+  DEFAULT_CUSTOM_THEME_COLORS,
+  isThemeColor,
+  isThemePaletteId,
+  type CustomThemeColors,
+  type ThemePaletteId,
+} from './themePalettes';
+
 export type ResolvedTheme = 'dark' | 'light';
 
 export interface ThemeSettings {
   followChatGPT: boolean;
   manualTheme: ResolvedTheme;
+  palette: ThemePaletteId;
+  customColors: CustomThemeColors;
 }
 
 const SETTINGS_KEY = 'chatToc:themeSettings';
@@ -12,6 +22,8 @@ const LEGACY_THEME_KEY = 'chatToc:theme';
 const DEFAULT_SETTINGS: ThemeSettings = {
   followChatGPT: true,
   manualTheme: 'dark',
+  palette: 'luna-blue',
+  customColors: DEFAULT_CUSTOM_THEME_COLORS,
 };
 
 /** Reads theme settings and migrates the previous string preference. */
@@ -28,6 +40,8 @@ export async function readThemeSettings(): Promise<ThemeSettings> {
     const migratedSettings: ThemeSettings = {
       followChatGPT: false,
       manualTheme: legacyTheme,
+      palette: 'luna-blue',
+      customColors: DEFAULT_CUSTOM_THEME_COLORS,
     };
     await writeThemeSettings(migratedSettings);
     return migratedSettings;
@@ -71,8 +85,20 @@ function normalizeThemeSettings(value: unknown): ThemeSettings | null {
     return null;
   }
 
+  const customColors = candidate.customColors;
+
   return {
     followChatGPT: candidate.followChatGPT,
     manualTheme: candidate.manualTheme,
+    palette: isThemePaletteId(candidate.palette)
+      ? candidate.palette
+      : DEFAULT_SETTINGS.palette,
+    customColors:
+      customColors &&
+      isThemeColor(customColors.background) &&
+      isThemeColor(customColors.text) &&
+      isThemeColor(customColors.accent)
+        ? customColors
+        : DEFAULT_CUSTOM_THEME_COLORS,
   };
 }

@@ -160,7 +160,17 @@ graph TD
   - [applicationShell.ts](../src/app/applicationShell.ts): Provides the typed sidebar shell, view-mode coordination, shared UI, and application initializer.
   - [content.ts](../src/content.ts): Calls the application initializer as the minimal Isolated World entry.
   - [themeSettings.ts](../src/features/theme/themeSettings.ts): Defines, persists, and migrates the follow/manual theme preference shared by the Popup and Content Script.
-  - [chatGptTheme.ts](../src/features/theme/chatGptTheme.ts): Detects ChatGPT's resolved root-class theme and shares the latest value with the Popup.
+- [chatGptTheme.ts](../src/features/theme/chatGptTheme.ts): Detects ChatGPT's resolved root-class theme and shares the latest value with the Popup.
+- [themePalettes.ts](../src/features/theme/themePalettes.ts): Defines preset palettes and applies validated Custom colors without changing resolved light/dark appearance.
+- [displayModeSettings.ts](../src/navigation/displayModeSettings.ts): Persists and synchronizes the Raw/Smart TOC display preference.
+- [promptLabels.ts](../src/navigation/promptLabels.ts): Separately decides contextual completion and long-label compression, then returns a structured, reason-coded result while preserving ambiguous prompts.
+- [promptLabelContext.ts](../src/navigation/promptLabelContext.ts): Extracts bounded headings, ordinary task sentences, preceding user requests, questions, and option groups with message-accurate source ranges, including CRLF and multi-message tails.
+- [promptLabelFocus.ts](../src/navigation/promptLabelFocus.ts): Builds a small evidence-bound task frame and rejects unsafe or unsupported candidate relations before selection.
+- [promptLabelCompression.ts](../src/navigation/promptLabelCompression.ts): Produces ordered semantic, compact, and task-focused candidates while guarding numbers, units, negation targets, formats, links, code, and attachments.
+- [promptLabelLayout.ts](../src/navigation/promptLabelLayout.ts): Batches actual two-line browser measurements and reselects only from semantically validated candidates when sidebar width changes.
+- [promptLabelDiagnostics.ts](../src/navigation/promptLabelDiagnostics.ts): Keeps deduplicated, text-free Smart Label traces in bounded tab memory for developer-only diagnosis.
+- [smartLabelStore.ts](../src/navigation/smartLabelStore.ts): Keeps derived Smart Labels stable across visits in a bounded local cache keyed by conversation/message IDs, algorithm version, and source revision signature.
+- [sidebarSettings.ts](../src/features/sidebar/sidebarSettings.ts): Provides the discoverable sidebar gear panel for palette selection, Custom colors, and Smart Label cache clearing.
 - [popup.tsx](../src/popup/popup.tsx): Mounts the React Popup application.
 - [options.tsx](../src/options/options.tsx): Mounts the full-page React settings application.
 
@@ -172,12 +182,17 @@ graph TD
 - [PromptEditorDialog.tsx](../src/components/my-prompts/PromptEditorDialog.tsx) renders the first migrated My Prompts interface while saving remains in the feature layer.
 - [PromptAutocomplete.tsx](../src/components/my-prompts/PromptAutocomplete.tsx) renders matched prompts at viewport coordinates supplied by the composer feature and keeps a single highlight owned by the most recent pointer or keyboard interaction.
 - [PopupApp.tsx](../src/components/popup/PopupApp.tsx) renders the extension Popup, including the follow-ChatGPT and manual theme controls.
+- The Popup also selects the color palette, edits Custom colors, and clears persisted Smart Labels.
 - [OptionsApp.tsx](../src/components/options/OptionsApp.tsx) renders the ChatGPT navigation strategy setting as immediately saved radio cards.
 - Popup layout and component styling use Tailwind utilities; `popup.css` remains the Tailwind entry and retains only theme tokens and document-level base rules.
 - `@/` resolves to the entire `src/` directory for browser code, React components, styles, and utilities.
 - Tailwind CSS is loaded as an inline string inside the React Shadow Root, so generated global rules cannot affect ChatGPT or the legacy Content Script UI.
 - shadcn theme variables are scoped to `.luna-toc-ui`, which is applied to both the React and Portal containers inside the Shadow Root.
 - The React host mirrors the document's `data-theme` value onto itself so Shadow DOM components follow LunaTOC theme changes without selecting across the boundary.
+- `data-palette` selects a color-token overlay independently of `data-theme`; Custom colors are validated opaque hex values applied through CSS variables.
+- Smart Labels are display-only metadata. A unified resolver applies Raw/Smart mode, separate completion/compression decisions, source completion, revision-aware cache lookup, bounded local evidence, semantic guards, and reason-coded abstention. Navigation snapshots, Prompt IDs, and saved prompts continue to consume the original `NavigatorMessage`; search checks raw, semantic, and displayed labels, while hover previews retain the full semantic label and original Prompt.
+- Only a candidate proven to originate from an Assistant Markdown heading may suppress that exact child-outline row. Ordinary sentence labels never remove outline content.
+- Smart Label diagnostics are developer-only: the bounded trace buffer lives in memory, emits text-free console records only when `luna:debugSmartLabels` is explicitly enabled, and has no sidebar or end-user feedback surface.
 
 ### Build Outputs
 

@@ -9,6 +9,12 @@ import { myPrompts } from '@/features/myPrompts/myPrompts';
 import { promptContextMenuController } from '@/features/myPrompts/promptContextMenu';
 import { previewTooltip } from '@/features/tooltip';
 import type { NavigatorMessage } from '@/features/conversationPrompts/message';
+import {
+  getDisplayMode,
+  subscribeDisplayMode,
+  writeDisplayMode,
+  type TocDisplayMode,
+} from '@/navigation/displayModeSettings';
 
 type ConversationEdge = 'top' | 'bottom';
 type ViewMode = 'toc' | 'myPrompts';
@@ -27,6 +33,8 @@ export const sidebarController = (() => {
   function init(): void {
     setNavigatorTitle();
     bindSidebarControls();
+    syncDisplayModeControls(getDisplayMode());
+    subscribeDisplayMode(syncDisplayModeControls);
   }
 
   /**
@@ -41,6 +49,10 @@ export const sidebarController = (() => {
     previewTooltip.hide();
     viewMode = nextViewMode;
     const isMyPrompts = viewMode === 'myPrompts';
+    document.querySelector<HTMLElement>('.navigator-display-mode')?.toggleAttribute(
+      'hidden',
+      isMyPrompts
+    );
 
     button.classList.toggle('mode-myprompts-active', isMyPrompts);
     button.setAttribute(
@@ -234,6 +246,25 @@ export const sidebarController = (() => {
       searchQuery = (event.currentTarget as HTMLInputElement).value;
       renderCurrentView();
     });
+    document.querySelectorAll<HTMLButtonElement>('[data-display-mode]').forEach(
+      (button) => {
+        button.addEventListener('click', () => {
+          const mode = button.dataset.displayMode as TocDisplayMode;
+          if (mode !== 'raw' && mode !== 'smart') return;
+          void writeDisplayMode(mode);
+        });
+      }
+    );
+  }
+
+  function syncDisplayModeControls(mode: TocDisplayMode): void {
+    document.querySelectorAll<HTMLButtonElement>('[data-display-mode]').forEach(
+      (button) => {
+        const isActive = button.dataset.displayMode === mode;
+        button.classList.toggle('navigator-display-mode-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      }
+    );
   }
 
   function getConversationTitle(): string {
