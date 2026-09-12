@@ -4,9 +4,15 @@ A lightweight Chrome extension that adds a Table of Contents (TOC) sidebar to Ch
 
 LunaTOC helps you navigate long conversations by automatically turning your prompts into a searchable, clickable outline.
 
-👉 [Install from Chrome Web Store](https://chromewebstore.google.com/detail/chattoc/ibfdglfgljonajofiiaonlimoiolkcpa)
+👉 [Upstream Chrome Web Store listing](https://chromewebstore.google.com/detail/chattoc/ibfdglfgljonajofiiaonlimoiolkcpa)
 
-[![Release](https://img.shields.io/badge/release-latest-blue)](https://github.com/Leo7805/chat-toc/releases/latest)
+[![Release](https://img.shields.io/badge/release-latest-blue)](https://github.com/zhaozixuan03/luna-toc/releases/latest)
+
+This repository is an independent derivative of
+[Leo7805/luna-toc](https://github.com/Leo7805/luna-toc). It preserves the
+upstream Git history and MIT license while maintaining LunaTOC-specific
+development in this repository. The original repository remains configured as
+the `upstream` Git remote.
 
 ![Demo](assets/demo-v1.5.gif)
 
