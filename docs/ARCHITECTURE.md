@@ -1,10 +1,10 @@
-# ChatTOC Architecture
+# LunaTOC Remix Architecture
 
-This document describes the design, context boundaries, and module coordination of the ChatTOC Chrome extension.
+This document describes the design, context boundaries, and module coordination of the LunaTOC Remix Chrome extension.
 
 ## Overview
 
-ChatTOC is a Chrome Extension that inserts a table-of-contents sidebar into ChatGPT's chat interface, helping users navigate long conversations and keep track of prompts.
+LunaTOC Remix is a Chrome Extension that inserts a table-of-contents sidebar into ChatGPT's chat interface, helping users navigate long conversations and keep track of prompts.
 
 ---
 

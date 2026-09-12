@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This file is the concise handoff for resuming LunaTOC work after a session restart, context loss, compaction, or agent handoff. It records only the current working state; durable architecture and decisions belong in `docs/ARCHITECTURE.md` and `docs/DECISIONS.md`.
+This file is the concise handoff for resuming LunaTOC Remix work after a session restart, context loss, compaction, or agent handoff. It records only the current working state; durable architecture and decisions belong in `docs/ARCHITECTURE.md` and `docs/DECISIONS.md`.
 
 ## Project
 
-- LunaTOC is a Chrome extension that adds a prompt table-of-contents sidebar to ChatGPT.
+- LunaTOC Remix is a Chrome extension that adds a prompt table-of-contents sidebar to ChatGPT.
 - The source is TypeScript and React, built with Vite and CRXJS into `dist/`.
 - Chrome must load the generated `dist/` directory rather than the repository root.
 - The root `manifest.json` is the source Manifest and authoritative extension version.
@@ -23,6 +23,8 @@ This file is the concise handoff for resuming LunaTOC work after a session resta
 
 ## Current Working Direction
 
+- The project is being published as **LunaTOC Remix**, an independent derivative that preserves the complete `Leo7805/luna-toc` history and MIT lineage. The GitHub repository is expected to move from `zhaozixuan03/luna-toc` to `zhaozixuan03/luna-toc-remix`; local `upstream` must remain the original repository.
+- The README has been rebuilt around a project-native pure-SVG hero, clear source-install guidance, current Remix capabilities, privacy boundaries, and explicit upstream attribution. User-facing product metadata uses the Remix name, while internal DOM IDs, storage keys, and diagnostic prefixes retain their stable LunaTOC namespaces.
 - The 2026-09-12 Smart Label completion/compression plan is approved and implemented in the working tree. Developer diagnostics remain intentionally hidden: bounded tab-memory traces, an explicit local console switch, and an offline replay script; there is no user-facing diagnostic or feedback UI.
 - The four audited short-prompt fixtures now all classify as context-dependent and produce accepted evidence-bound candidates. Ordinary task sentences and the preceding raw user Prompt fill the demonstrated candidate-recall gap without hard-coded case names.
 - Completion and compression are independent. Long informative Prompts can be compressed in Smart mode, semantic and display labels remain separate, and actual browser geometry selects only among fidelity-checked candidates.
@@ -53,23 +55,20 @@ This file is the concise handoff for resuming LunaTOC work after a session resta
 
 ## Validation and Handoff
 
-- The focused Smart Label implementation run passes 44 tests across 9 files. The four-case developer replay reports 4/4 accepted labels with no forbidden terms. Final typecheck and production build pass. The full suite passes 232 of 234 tests; only the two previously recorded timer-sensitive `renderedFingerprintCollector` tests fail. Chrome UI validation remains for the user.
 - Logic tests belong in `test/` and use Vitest.
 - After relevant source changes, run `npm test`, `npm run typecheck`, and `npm run build`.
 - Report executed automated tests separately from manual tests that remain for the user.
 - Organize implementation summaries by linked file, with one-line file and changed-function descriptions.
 - End implementation handoffs with a Conventional Commits message.
-- Smart Label focused validation passes 26 tests across three files; `npm run typecheck` passes, and `npm run build` produces a loadable `dist/` directory.
-- The latest full-suite run passes 218 of 220 tests. Both failures are the pre-existing timer-sensitive settle and route-switch cases in `test/platforms/chatgpt/renderedFingerprintCollector.test.ts`; the same file passed all 5 tests when rerun alone earlier in this implementation. This Smart Label change does not touch that collector.
+- The 2026-09-13 rebrand/README validation passes the README asset audit, `npm run typecheck`, and `npm run build`. The full suite passes 232 of 234 tests; only the two previously recorded timer-sensitive `renderedFingerprintCollector` tests fail. A focused rerun passes 4 of 5, with the mutation-settle timer case still failing. No files in that collector were changed.
 - A local 100-run measurement averaged 1.447 ms to classify and resolve 500 synthetic prompts per run, with no single-run long-task instrumentation claim. Static inspection found no Smart Label network API entry point.
 
 ## Next Step
 
-- Run the full suite, typecheck, and build; then reload `dist/` in Chrome and verify audited short prompts, long-prompt compression, Raw/Smart switching, search, hover provenance, regenerated responses, width changes, and heading-only outline suppression. Cache version 4 invalidates older Smart Label records automatically.
+- Publish the rebrand through a focused pull request, rename the GitHub repository to `luna-toc-remix`, update `origin`, and then re-check GitHub's homepage contributor card against the contributors API/page. Do not rewrite author history or manufacture commits to influence the card.
+- Reload `dist/` in Chrome and verify the Remix name, popup lineage link, audited short prompts, long-prompt compression, Raw/Smart switching, search, hover provenance, regenerated responses, width changes, and heading-only outline suppression. Cache version 4 invalidates older Smart Label records automatically.
 - Reassess the provisional Smart Label cache limits after real usage evidence; do not change them speculatively.
 - My Prompts uses a shared React context menu: empty panel space offers clear-all after confirmation, while saved prompt rows offer Copy Prompt. The right-click target has a temporary selected state while its menu is open. An open menu counts as a sidebar hover surface so auto-hide matches preview-tooltip behavior.
 - Prompt autocomplete keeps its suggestion menu open while programmatically inserting a selected prompt, then closes it once after insertion completes to avoid an extra synchronous React update.
 - Sidebar view changes are centralized in the application shell. A newly sent ChatGPT prompt explicitly switches My Prompts back to TOC so the panel, title, and toggle button stay synchronized.
 - Navigation-anchor persistence safely degrades to memory-only behavior when an extension reload leaves `chrome.storage.local` unavailable, so independent navigation can continue.
-- `npm run typecheck`, `npm run build`, and the focused context-menu test passed. The full test suite currently has two unrelated failures in `test/platforms/chatgpt/renderedFingerprintCollector.test.ts`.
-- Resume from the user's next confirmed task.

@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
-    "name": "ChatGPT Table of Contents - LunaTOC",
-    "short_name": "LunaTOC",
+    "name": "LunaTOC Remix - ChatGPT Navigator",
+    "short_name": "LunaTOC Remix",
     "version": "1.11.4",
-    "description": "Add a table of contents, prompt navigator, and MyPrompts sidebar to long ChatGPT conversations.",
+    "description": "Navigate long ChatGPT conversations with a searchable table of contents and privacy-first Smart Labels.",
     "icons": {
         "16": "src/icons/icon16.png",
         "32": "src/icons/icon32.png",
