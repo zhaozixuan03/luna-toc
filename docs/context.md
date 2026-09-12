@@ -65,6 +65,7 @@ This file is the concise handoff for resuming LunaTOC Remix work after a session
 
 ## Next Step
 
+- Use `docs/NEXT_WORK_PROMPT.md` as the approved execution brief for the next productization cycle: reproduce long-compression visibility, separate semantics from layout, provide three-line Raw/Smart rows with a safer sidebar width, make hidden developer diagnostics usable, build synthetic/private/public evaluation layers, stabilize the full suite, and add CI. Preserve all work through focused GitHub branches and pull requests.
 - GitHub's standard contributors endpoint reports both `Leo7805` and `zhaozixuan03`, while the homepage contributor card still shows only one contributor. The repository-statistics endpoint is returning `202 Accepted` after the default-branch update, confirming a pending cache rebuild. Recheck after GitHub finishes recomputing; do not rewrite author history or manufacture commits to influence the card.
 - Reload `dist/` in Chrome and verify the Remix name, popup lineage link, audited short prompts, long-prompt compression, Raw/Smart switching, search, hover provenance, regenerated responses, width changes, and heading-only outline suppression. Cache version 4 invalidates older Smart Label records automatically.
 - Reassess the provisional Smart Label cache limits after real usage evidence; do not change them speculatively.
