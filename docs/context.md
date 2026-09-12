@@ -23,7 +23,7 @@ This file is the concise handoff for resuming LunaTOC Remix work after a session
 
 ## Current Working Direction
 
-- The project is being published as **LunaTOC Remix**, an independent derivative that preserves the complete `Leo7805/luna-toc` history and MIT lineage. The GitHub repository is expected to move from `zhaozixuan03/luna-toc` to `zhaozixuan03/luna-toc-remix`; local `upstream` must remain the original repository.
+- The project is published as **LunaTOC Remix** at `zhaozixuan03/luna-toc-remix`, an independent derivative that preserves the complete `Leo7805/luna-toc` history and MIT lineage. Local `origin` points to the Remix repository and `upstream` remains the original repository.
 - The README has been rebuilt around a project-native pure-SVG hero, clear source-install guidance, current Remix capabilities, privacy boundaries, and explicit upstream attribution. User-facing product metadata uses the Remix name, while internal DOM IDs, storage keys, and diagnostic prefixes retain their stable LunaTOC namespaces.
 - The 2026-09-12 Smart Label completion/compression plan is approved and implemented in the working tree. Developer diagnostics remain intentionally hidden: bounded tab-memory traces, an explicit local console switch, and an offline replay script; there is no user-facing diagnostic or feedback UI.
 - The four audited short-prompt fixtures now all classify as context-dependent and produce accepted evidence-bound candidates. Ordinary task sentences and the preceding raw user Prompt fill the demonstrated candidate-recall gap without hard-coded case names.
@@ -65,7 +65,7 @@ This file is the concise handoff for resuming LunaTOC Remix work after a session
 
 ## Next Step
 
-- Publish the rebrand through a focused pull request, rename the GitHub repository to `luna-toc-remix`, update `origin`, and then re-check GitHub's homepage contributor card against the contributors API/page. Do not rewrite author history or manufacture commits to influence the card.
+- GitHub's standard contributors endpoint reports both `Leo7805` and `zhaozixuan03`, while the homepage contributor card still shows only one contributor. The repository-statistics endpoint is returning `202 Accepted` after the default-branch update, confirming a pending cache rebuild. Recheck after GitHub finishes recomputing; do not rewrite author history or manufacture commits to influence the card.
 - Reload `dist/` in Chrome and verify the Remix name, popup lineage link, audited short prompts, long-prompt compression, Raw/Smart switching, search, hover provenance, regenerated responses, width changes, and heading-only outline suppression. Cache version 4 invalidates older Smart Label records automatically.
 - Reassess the provisional Smart Label cache limits after real usage evidence; do not change them speculatively.
 - My Prompts uses a shared React context menu: empty panel space offers clear-all after confirmation, while saved prompt rows offer Copy Prompt. The right-click target has a temporary selected state while its menu is open. An open menu counts as a sidebar hover surface so auto-hide matches preview-tooltip behavior.
