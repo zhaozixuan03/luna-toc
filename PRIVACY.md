@@ -1,6 +1,6 @@
 # Privacy Policy
 
-ChatTOC does not collect, store, transmit, sell, or share any user data.
+LunaTOC Remix does not collect, transmit, sell, or share conversation data.
 
 The extension operates entirely within the user's browser and only reads visible ChatGPT conversation content to generate a local table of contents and navigation sidebar.
 

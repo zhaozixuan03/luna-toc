@@ -27,7 +27,7 @@ const NAVIGATION_CHOICES: NavigationChoice[] = [
   },
   {
     value: 'independent-virtual',
-    label: 'LunaTOC Independent',
+    label: 'LunaTOC Remix Independent',
     description:
       'Deterministic message-ID navigation that targets each prompt turn precisely.',
   },
@@ -94,7 +94,7 @@ export function OptionsApp(): React.JSX.Element {
     <main className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8">
       <header className="mb-8">
         <p className="m-0 text-xs font-semibold tracking-[0.12em] text-[var(--o-accent)] uppercase">
-          LunaTOC
+          LunaTOC Remix
         </p>
         <h1 className="mt-2 mb-0 text-3xl font-semibold text-[var(--o-text)]">
           Settings
@@ -109,7 +109,7 @@ export function OptionsApp(): React.JSX.Element {
           Navigation
         </h2>
         <p className="mt-1 mb-4 text-sm text-[var(--o-muted)]">
-          Choose how LunaTOC navigates ChatGPT conversations.
+          Choose how LunaTOC Remix navigates ChatGPT conversations.
         </p>
 
         <fieldset className="m-0 grid gap-3 border-0 p-0">
@@ -191,7 +191,7 @@ export function OptionsApp(): React.JSX.Element {
               </span>
               <span className="mt-1 block text-sm leading-5 text-[var(--o-muted)]">
                 Notify me on this page when ChatGPT&apos;s API or layout changes
-                may affect LunaTOC. (Developer feature — leave off unless
+                may affect LunaTOC Remix. (Developer feature — leave off unless
                 you&apos;re maintaining the extension.)
               </span>
             </span>

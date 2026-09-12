@@ -15,12 +15,7 @@ import {
 import { applyThemePalette } from '@/features/theme/themePalettes';
 import { clearSmartLabelCache } from '@/navigation/smartLabelStore';
 import { ThemeSettings } from './ThemeSettings';
-import coffeeImage from './black-button.png';
-import coffeeImageLight from './yellow-button.png';
-
-const WEB_STORE_URL =
-  'https://chromewebstore.google.com/detail/chatgpt-table-of-contents/ibfdglfgljonajofiiaonlimoiolkcpa';
-const COFFEE_URL = 'https://buymeacoffee.com/jinleo';
+const UPSTREAM_URL = 'https://github.com/Leo7805/luna-toc';
 
 const INITIAL_SETTINGS: ThemeSettingsValue = {
   followChatGPT: true,
@@ -129,7 +124,7 @@ export function PopupApp(): React.JSX.Element {
       <footer className="mt-2.5 flex items-center justify-between border-t border-(--p-toggle-border) pt-2">
         <button
           type="button"
-          title="Open LunaTOC settings"
+          title="Open LunaTOC Remix settings"
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border-0 bg-transparent px-1.5 py-1 text-[10px] font-medium text-(--p-toggle-text) outline-none transition duration-150 hover:bg-(--p-toggle-bg) hover:text-(--p-accent) focus-visible:ring-2 focus-visible:ring-(--p-accent) active:scale-95 active:bg-(--p-bg-note)"
           onClick={() => void chrome.runtime.openOptionsPage()}
         >
@@ -137,10 +132,11 @@ export function PopupApp(): React.JSX.Element {
           Settings
         </button>
         <a
-          href={WEB_STORE_URL}
+          href={UPSTREAM_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="rate-link inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-medium text-(--p-toggle-text) no-underline transition duration-150 hover:bg-(--p-toggle-bg) hover:text-(--p-rate-hover-color)"
+          title="View the original LunaTOC project"
         >
           <svg
             aria-hidden="true"
@@ -149,24 +145,7 @@ export function PopupApp(): React.JSX.Element {
           >
             <path d="m12 2 3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.74 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2Z" />
           </svg>
-          Rate
-        </a>
-        <a
-          href={COFFEE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="coffee-link inline-flex items-center rounded-md px-1.5 py-1 transition duration-150 hover:bg-(--p-toggle-bg) hover:scale-105 active:scale-95"
-        >
-          <img
-            src={coffeeImage}
-            alt="Buy me a coffee"
-            className="coffee-img-dark h-7 w-auto"
-          />
-          <img
-            src={coffeeImageLight}
-            alt="Buy me a coffee"
-            className="coffee-img-light hidden h-7 w-auto"
-          />
+          Upstream
         </a>
       </footer>
     </main>

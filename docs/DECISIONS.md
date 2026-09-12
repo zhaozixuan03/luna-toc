@@ -1,6 +1,6 @@
 # Architectural Decisions Log
 
-This document records the key architectural decisions, rationale, and consequences for ChatTOC.
+This document records the key architectural decisions, rationale, and consequences for LunaTOC Remix.
 
 ---
 
