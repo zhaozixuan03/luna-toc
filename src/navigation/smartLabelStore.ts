@@ -3,7 +3,7 @@
 interface StoredLabel {
   label: string;
   updatedAt: number;
-  algorithmVersion: 4;
+  algorithmVersion: 5;
   sourceSignature: string;
   decisionType: string;
 }
@@ -14,7 +14,7 @@ interface StoredConversationLabels {
 }
 
 interface SmartLabelCache {
-  version: 4;
+  version: 5;
   conversations: Record<string, StoredConversationLabels>;
 }
 
@@ -25,9 +25,9 @@ export const SMART_LABEL_CACHE_LIMITS = {
 } as const;
 
 const STORAGE_KEY = 'chatToc:smartLabelCache';
-export const SMART_LABEL_ALGORITHM_VERSION = 4 as const;
+export const SMART_LABEL_ALGORITHM_VERSION = 5 as const;
 
-const EMPTY_CACHE: SmartLabelCache = { version: 4, conversations: {} };
+const EMPTY_CACHE: SmartLabelCache = { version: 5, conversations: {} };
 
 let cache: SmartLabelCache = structuredClone(EMPTY_CACHE);
 let writeQueued = false;
@@ -183,7 +183,7 @@ function normalizeCache(value: unknown): SmartLabelCache {
   if (!value || typeof value !== 'object') return structuredClone(EMPTY_CACHE);
   const candidate = value as Partial<SmartLabelCache>;
   if (
-    candidate.version !== 4 ||
+    candidate.version !== 5 ||
     !candidate.conversations ||
     typeof candidate.conversations !== 'object'
   ) {
@@ -228,5 +228,5 @@ function normalizeCache(value: unknown): SmartLabelCache {
       labels,
     };
   });
-  return { version: 4, conversations };
+  return { version: 5, conversations };
 }

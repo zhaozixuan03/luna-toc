@@ -54,9 +54,9 @@ Do not store credentials, tokens, or proxy secrets in the repository.
 Do not reimplement these blindly; audit them first.
 
 - `src/navigation/promptLabelCompression.ts` already implements deterministic long-label compression.
-- Current eligibility is `normalized.length > 64` or an estimated mixed-language width greater than `92`.
+- Current eligibility is more than 48 normalized Unicode characters; browser width no longer participates.
 - `test/navigation/promptLabelCompression.test.ts` covers compression routing and preservation of negation, numbers, units, and output formats.
-- `test/navigation/promptLabelLayout.test.ts` covers two-line layout candidate selection.
+- `test/navigation/promptLabelLayout.test.ts` covers two-line fit reporting and verifies that width cannot change the selected semantic label.
 - `src/styles/content.css` currently gives Smart Labels two lines, while ordinary Raw rows still use single-line `white-space: nowrap` and ellipsis.
 - Sidebar width is currently configured as 300 px default, 240 px minimum, and 520 px maximum. The sidebar is fixed on the right and overlays the host page.
 - `src/navigation/promptLabelDiagnostics.ts` keeps up to 1,000 text-free traces in tab memory. Console emission is enabled only when `localStorage['luna:debugSmartLabels'] === '1'`.

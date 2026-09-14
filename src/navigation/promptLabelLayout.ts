@@ -1,4 +1,4 @@
-/** Selects a semantically validated Smart Label using actual sidebar geometry. */
+/** Measures a fixed Smart Label without changing its semantic content. */
 
 export interface PromptLabelLayoutResult {
   label: string;
@@ -8,11 +8,11 @@ export interface PromptLabelLayoutResult {
 interface RegisteredLabel {
   element: HTMLElement;
   prefix: string;
-  candidates: string[];
+  label: string;
   onResult: (result: PromptLabelLayoutResult) => void;
 }
 
-/** Batches two-line measurements and remeasures only when sidebar width changes. */
+/** Batches two-line fit measurements when sidebar width changes. */
 export class PromptLabelLayoutScheduler {
   private readonly entries = new Map<HTMLElement, RegisteredLabel>();
   private readonly observer: ResizeObserver | null;
@@ -30,10 +30,10 @@ export class PromptLabelLayoutScheduler {
   public register(
     element: HTMLElement,
     prefix: string,
-    candidates: string[],
+    label: string,
     onResult: (result: PromptLabelLayoutResult) => void
   ): void {
-    this.entries.set(element, { element, prefix, candidates: [...new Set(candidates)], onResult });
+    this.entries.set(element, { element, prefix, label, onResult });
     this.queueMeasure();
   }
 
@@ -58,20 +58,20 @@ export class PromptLabelLayoutScheduler {
         this.entries.delete(element);
         continue;
       }
-      entry.onResult(selectPromptLabelForElement(entry.element, entry.prefix, entry.candidates));
+      entry.onResult(measurePromptLabelForElement(entry.element, entry.prefix, entry.label));
     }
   }
 }
 
-/** Chooses the first complete candidate that fits two unclamped rendered lines. */
-export function selectPromptLabelForElement(
+/** Reports whether one already-selected label fits two unclamped rendered lines. */
+export function measurePromptLabelForElement(
   element: HTMLElement,
   prefix: string,
-  candidates: string[]
+  label: string
 ): PromptLabelLayoutResult {
   const width = element.getBoundingClientRect().width;
   if (width <= 0 || !element.isConnected) {
-    return { label: candidates[0] ?? '', fit: 'unmeasured' };
+    return { label, fit: 'unmeasured' };
   }
 
   const measurement = element.cloneNode(false) as HTMLElement;
@@ -80,14 +80,12 @@ export function selectPromptLabelForElement(
   measurement.style.width = `${width}px`;
   document.body.appendChild(measurement);
   try {
-    for (const candidate of candidates) {
-      measurement.textContent = `${prefix}${candidate}`;
-      const lineHeight = Number.parseFloat(getComputedStyle(measurement).lineHeight) || 20;
-      if (measurement.scrollHeight <= lineHeight * 2 + 0.5) {
-        return { label: candidate, fit: 'fit' };
-      }
-    }
-    return { label: candidates[0] ?? '', fit: 'unfit' };
+    measurement.textContent = `${prefix}${label}`;
+    const lineHeight = Number.parseFloat(getComputedStyle(measurement).lineHeight) || 20;
+    return {
+      label,
+      fit: measurement.scrollHeight <= lineHeight * 2 + 0.5 ? 'fit' : 'unfit',
+    };
   } finally {
     measurement.remove();
   }

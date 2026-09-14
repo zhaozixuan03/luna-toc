@@ -1,12 +1,12 @@
 /** @vitest-environment jsdom */
 /** Tests browser-layout selection separately from semantic compression. */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { selectPromptLabelForElement } from '@/navigation/promptLabelLayout';
+import { measurePromptLabelForElement } from '@/navigation/promptLabelLayout';
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('Prompt Label layout', () => {
-  it('selects the first semantically valid candidate that fits two lines', () => {
+  it('reports fit without replacing the selected semantic label', () => {
     const element = document.createElement('span');
     document.body.appendChild(element);
     vi.spyOn(element, 'getBoundingClientRect').mockReturnValue({ width: 120 } as DOMRect);
@@ -15,22 +15,33 @@ describe('Prompt Label layout', () => {
     });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({ lineHeight: '20px' } as CSSStyleDeclaration);
 
-    expect(selectPromptLabelForElement(element, '1. ', [
-      '完整但超过两行的语义标题内容',
-      '紧凑标题',
-    ])).toEqual({ label: '紧凑标题', fit: 'fit' });
+    expect(
+      measurePromptLabelForElement(
+        element,
+        '1. ',
+        '完整但超过两行的语义标题内容'
+      )
+    ).toEqual({ label: '完整但超过两行的语义标题内容', fit: 'unfit' });
   });
 
-  it('keeps the complete semantic label when no candidate fits', () => {
+  it('returns the same semantic label at narrow and wide widths', () => {
     const element = document.createElement('span');
     document.body.appendChild(element);
-    vi.spyOn(element, 'getBoundingClientRect').mockReturnValue({ width: 80 } as DOMRect);
-    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(60);
+    let width = 80;
+    vi.spyOn(element, 'getBoundingClientRect').mockImplementation(
+      () => ({ width } as DOMRect)
+    );
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      () => width < 200 ? 60 : 40
+    );
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({ lineHeight: '20px' } as CSSStyleDeclaration);
 
-    expect(selectPromptLabelForElement(element, '1. ', ['完整语义标题', '短标题'])).toEqual({
-      label: '完整语义标题',
-      fit: 'unfit',
-    });
+    const label = '由内容决定的唯一语义标题';
+    const narrow = measurePromptLabelForElement(element, '1. ', label);
+    width = 320;
+    const wide = measurePromptLabelForElement(element, '1. ', label);
+
+    expect(narrow).toEqual({ label, fit: 'unfit' });
+    expect(wide).toEqual({ label, fit: 'fit' });
   });
 });
