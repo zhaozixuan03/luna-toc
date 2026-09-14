@@ -77,8 +77,21 @@ describe('Smart Label store', () => {
     expect(getStoredSmartLabel('conversation', 'message')).toBeNull();
 
     storedValue = {
-      version: 2,
-      conversations: {},
+      version: 4,
+      conversations: {
+        conversation: {
+          lastAccessedAt: 1_000,
+          labels: {
+            message: {
+              label: '版本四压缩前标题',
+              updatedAt: 1_000,
+              algorithmVersion: 4,
+              sourceSignature: 'signature',
+              decisionType: 'compress',
+            },
+          },
+        },
+      },
     };
     await initializeSmartLabelStore(1_000);
     expect(getStoredSmartLabel('conversation', 'message')).toBeNull();

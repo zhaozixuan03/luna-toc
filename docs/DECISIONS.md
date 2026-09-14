@@ -550,7 +550,7 @@ Out of scope for this PR:
 ## ADR 12: Local Smart Labels and Independent Color Palettes
 
 **Date:** 2026-09-10
-**Updated:** 2026-09-12
+**Updated:** 2026-09-14
 
 ### Context
 
@@ -597,8 +597,10 @@ Completion and compression are independent decisions. Contextual completion may
 use the current and preceding Prompt/Assistant turns, but every accepted relation
 must retain message-bound evidence. Ordinary task sentences are eligible evidence;
 Markdown formatting only affects ranking. Long informative Prompts and completed
-labels use the same fidelity-checked compression candidates. Browser layout selects
-only among those candidates and keeps the complete semantic label when none fits.
+labels use the same fidelity-checked compression candidates. Compression eligibility
+is based only on normalized Prompt content: more than 48 Unicode characters. The
+resolver selects one final semantic label before rendering. Browser layout only
+measures whether that fixed label fits and cannot replace it when width changes.
 
 Developer diagnosis uses a bounded, deduplicated in-memory trace with explicit
 stage states and reason codes. It is not persisted, uploaded, or exposed in the
@@ -616,7 +618,7 @@ and regression data, not an unseen test set.
 - Search matches both the visible Smart Label and the original Prompt.
 - Smart Labels use two display lines, and hover previews show the full label plus original Prompt.
 - A promoted answer heading is omitted from the child outline to avoid duplicate hierarchy.
-- Cache schema version 4 invalidates earlier labels, requires a verifiable source signature, and invalidates individual records when any consumed local context changes.
+- Cache schema version 5 invalidates labels produced before semantic selection was separated from layout, requires a verifiable source signature, and invalidates individual records when any consumed local context changes.
 - Preset and Custom palettes do not alter navigation behavior.
 - Palette and cache controls are available from a visible sidebar gear as well as the extension popup.
 

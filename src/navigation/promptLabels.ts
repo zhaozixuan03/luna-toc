@@ -241,19 +241,18 @@ export function resolvePromptDisplayLabel(
   }
 
   if (input.cachedLabel && (decision.isLowInformation || compression.needed)) {
-    const cachedCompression = compressPromptLabel(input.cachedLabel);
     const route: PromptLabelRoute = decision.isLowInformation
-      ? cachedCompression.needed ? 'complete_then_compress' : 'complete'
-      : cachedCompression.needed ? 'compress' : 'keep';
+      ? 'complete'
+      : 'compress';
     const cachedEvidence = extractResponseLabelCandidates(input.currentResponses ?? [])
       .find((candidate) => candidate.text === input.cachedLabel);
     const contextual = createContextualResult(
       cachedEvidence ? [cachedEvidence] : [],
       decision.replyType
     );
-    return createDisplayResult(cachedCompression.selectedLabel, input.cachedLabel, decision, {
+    return createDisplayResult(input.cachedLabel, input.cachedLabel, decision, {
       completionNeed,
-      compressionNeed: cachedCompression.needed ? 'yes' : 'no',
+      compressionNeed,
       route,
       primaryReason: 'CACHE_HIT',
       stages: { ...baseStages, classify: 'passed' },
@@ -264,7 +263,7 @@ export function resolvePromptDisplayLabel(
 
   if (!decision.isLowInformation) {
     if (compression.outcome === 'compressed') {
-      return createDisplayResult(compression.selectedLabel, rawLabel, decision, {
+      return createDisplayResult(compression.selectedLabel, compression.selectedLabel, decision, {
         completionNeed,
         compressionNeed,
         route: 'compress',
@@ -335,7 +334,7 @@ export function resolvePromptDisplayLabel(
     : input.cacheStatus === 'stale'
       ? 'CACHE_STALE'
       : 'CACHE_MISS';
-  return createDisplayResult(label, completedLabel, decision, {
+  return createDisplayResult(label, label, decision, {
     completionNeed,
     compressionNeed: completedCompression.needed ? 'yes' : 'no',
     route: completedCompression.outcome === 'compressed' ? 'complete_then_compress' : 'complete',

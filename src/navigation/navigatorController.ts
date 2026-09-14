@@ -59,7 +59,6 @@ import {
   type PromptDisplayLabelResult,
 } from '@/navigation/promptLabels';
 import { createPromptLabelSourceSignature } from '@/navigation/promptLabelContext';
-import { compressPromptLabel } from '@/navigation/promptLabelCompression';
 import {
   PromptLabelLayoutScheduler,
   type PromptLabelLayoutResult,
@@ -580,14 +579,12 @@ export const navigatorController = (() => {
       previewTooltip.hide();
     });
 
-    const layoutCandidates = compressPromptLabel(labelResult.semanticLabel).candidates;
-    if (hasDerivedLabel && layoutCandidates.length > 1) {
+    if (hasDerivedLabel) {
       promptLabelLayoutScheduler?.register(
         itemText,
         `${index + 1}. `,
-        layoutCandidates,
+        displayLabel,
         (layoutResult) => {
-          itemText.textContent = `${index + 1}. ${layoutResult.label}`;
           recordSmartLabelDiagnostic(message, labelResult, layoutResult);
         }
       );

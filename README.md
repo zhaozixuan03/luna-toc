@@ -71,6 +71,7 @@ The Remix is evolving LunaTOC around four principles:
 - Complete context-dependent replies such as acknowledgements, continuations,
   and explicit choices when nearby evidence identifies one safe task.
 - Compress long informative prompts with deterministic rules.
+- Decide compression from normalized Prompt content, independently of sidebar width.
 - Preserve critical meaning such as negation, numbers, units, versions, scope,
   and alternatives.
 - Abstain and keep the original Prompt when evidence is missing, incomplete, or
